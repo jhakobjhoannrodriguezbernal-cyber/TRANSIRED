@@ -1,6 +1,7 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-    <title>Iniciar Sesión</title>
+    <title>Noticias - TRANSIRED</title>
     <link rel="stylesheet" href="Noticias.css">
 </head>
 <body>
@@ -13,12 +14,53 @@
                 <ul>
                     <li><a href="index.html">INICIO</a></li>
                     <li><a href="https://moralesmuni.gob.pe/">ACERCA DE NOSOTROS</a></li>
-                    <li><a href="interfaz.html">INTERFAZ PRINCIPAL</a></li>
                     <li><a href="mapa.html">MAPA DEL DISTRITO</a></li>
-                    <li><a href="Reportes.html">AVISOS Y REPORTE</a></li>
+                    <li><a href="Reportes.html">AVISOS Y REPORTES</a></li>
                 </ul>
             </div>
         </div>
+
+        <div class="noticias-container">
+            <h1>NOTICIAS</h1>
+            <p class="subtitulo">Últimas novedades del distrito de Morales</p>
+
+            <div id="lista-noticias" class="grid-noticias">
+                <p class="cargando">Cargando noticias...</p>
+            </div>
+        </div>
     </div>
+
+    <script>
+      async function cargarNoticias() {
+        const lista = document.getElementById('lista-noticias');
+        try {
+          const res  = await fetch('/api/noticias');
+          const data = await res.json();
+
+          if (!data.length) {
+            lista.innerHTML = '<p class="sin-noticias">No hay noticias publicadas aún.</p>';
+            return;
+          }
+
+          lista.innerHTML = data.map(n => `
+            <div class="noticia-card">
+              ${n.imagen ? `<img src="${n.imagen}" alt="${n.titulo}" class="noticia-img">` : ''}
+              <div class="noticia-body">
+                <span class="noticia-categoria">${n.categoria}</span>
+                <h2 class="noticia-titulo">${n.titulo}</h2>
+                <p class="noticia-contenido">${n.contenido}</p>
+                <p class="noticia-fecha">📅 ${new Date(n.fecha).toLocaleDateString('es-PE', { year:'numeric', month:'long', day:'numeric' })}</p>
+              </div>
+            </div>
+          `).join('');
+
+        } catch (err) {
+          lista.innerHTML = '<p>No se pudieron cargar las noticias. Intenta más tarde.</p>';
+          console.error(err);
+        }
+      }
+
+      cargarNoticias();
+    </script>
 </body>
 </html>
