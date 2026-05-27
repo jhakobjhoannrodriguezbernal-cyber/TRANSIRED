@@ -3,24 +3,17 @@ import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
 
-let client;
-let clientPromise;
-
 if (!uri) {
-  throw new Error('Por favor define la variable de entorno MONGODB_URI en Vercel');
+  throw new Error('Falta la variable de entorno MONGODB_URI en Vercel');
 }
 
-if (process.env.NODE_ENV === 'development') {
-  // En desarrollo, reutilizar la conexión entre hot-reloads
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri);
-    global._mongoClientPromise = client.connect();
-  }
-  clientPromise = global._mongoClientPromise;
-} else {
-  // En producción, crear una nueva conexión por instancia
-  client = new MongoClient(uri);
-  clientPromise = client.connect();
-}
+// Reutilizar conexión entre llamadas en producción
+let cachedClient = null;
 
-export default clientPromise;
+export async function conectarDB() {
+  if (cachedClient) return cachedClient;
+  const client = new MongoClient(uri);
+  await client.connect();
+  cachedClient = client;
+  return client;
+}
