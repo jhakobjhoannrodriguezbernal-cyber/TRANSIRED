@@ -1,0 +1,8 @@
+{
+  "name": "transired",
+  "version": "1.0.0",
+  "description": "Plataforma TRANSIRED - Municipalidad de Morales",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
