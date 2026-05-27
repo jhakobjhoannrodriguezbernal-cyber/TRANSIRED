@@ -1,5 +1,5 @@
 // api/reportes.js
-import clientPromise from './_db.js';
+import { conectarDB } from './_db.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,33 +8,27 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const client = await clientPromise;
-    const db = client.db('transired');
-    const col = db.collection('reportes');
+    const client = await conectarDB();
+    const col = client.db('transired').collection('reportes');
 
-    // POST → guardar nuevo reporte ciudadano
     if (req.method === 'POST') {
       const { tipo, descripcion, ubicacion, usuario, direccion } = req.body;
-
       if (!tipo || !descripcion) {
         return res.status(400).json({ error: 'Tipo y descripción son requeridos' });
       }
 
-      const nuevoReporte = {
-        tipo,           // Ej: "accidente", "semáforo roto", "bache", etc.
+      const result = await col.insertOne({
+        tipo,
         descripcion,
-        ubicacion: ubicacion || null,   // { lat, lng }
+        ubicacion: ubicacion || null,
         direccion: direccion || '',
         usuario: usuario || 'anónimo',
-        estado: 'pendiente',            // pendiente | en revisión | resuelto
+        estado: 'pendiente',
         fecha: new Date()
-      };
-
-      const result = await col.insertOne(nuevoReporte);
+      });
       return res.status(201).json({ ok: true, id: result.insertedId });
     }
 
-    // GET → obtener todos los reportes (con filtro opcional por estado)
     if (req.method === 'GET') {
       const { estado } = req.query;
       const filtro = estado ? { estado } : {};
@@ -49,6 +43,6 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Método no permitido' });
   } catch (err) {
     console.error('Error en /api/reportes:', err);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ error: err.message });
   }
 }
