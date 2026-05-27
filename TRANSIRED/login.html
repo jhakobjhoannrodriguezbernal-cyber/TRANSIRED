@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="main">
+        <div class="navbar">
+            <div class="icon">
+              <h2 class="logo"><img src="3.png"></h2>
+            </div>
+            <div class="menu">
+                <ul>
+                    <li><a href="index.html">INICIO</a></li>
+                    <li><a href="https://moralesmuni.gob.pe/">ACERCA DE NOSOTROS</a></li>
+                    <li><a href="mapa.html">MAPA DEL DISTRITO</a></li>
+                    <li><a href="Noticias.html">NOTICIAS</a></li>
+                    <li><a href="Reportes.html">AVISOS Y REPORTES</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Centro de Informes  <br><span>y Reportes</span><br>Transired</h1>
+            <p class="parr">TRANSIRED es una plataforma digital de comunicación ciudadana creada para transformar 
+                <br>la forma en que los vecinos del distrito de Morales interactúan con su municipalidad 
+                <br>en materia de tránsito y movilidad urbana.</p>
+
+                <button class="cn"><a href="#">ÚNETE</a></button>
+
+                <div class="form">
+                    <h2>Iniciar Sesión</h2>
+                    <input type="email" name="email" placeholder="Introduce tu Correo">
+                    <input type="password" name="" placeholder="Introduce tu Contraseña">
+                    <a href="interfaz.html"><button class="btnn">Acceso</button></a>
+
+                    <p class="link">No tengo una cuenta<br>
+                    <a href="registro.html">Registrate aquí</a></p>
+                    <p class="liw">Iniciar Sesión con</p>
+
+                    <div class="icon">
+                        <a href="#"><ion-icon name="logo-google">
+                          
+                        </ion-icon></a>
+                    </div>
+                </div>
+        </div>
+    </div>
+    <SCript src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></SCript>
+      <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div class="card">
+    <h2>Iniciar sesión</h2>
+    <div id="g_id_button"></div>
+    <p class="note">Usa tu cuenta de Google para acceder. Después de iniciar sesión serás redirigido a la página principal.</p>
+    <p id="error" style="color:#c00; display:none;"></p>
+  </div>
+
+  <script>
+    const CLIENT_ID = '903625348841-j9ed7i8hb3me77lvhp7gai175c4rr68i.apps.googleusercontent.com';
+
+    function parseJwt (token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        console.error('parseJwt error', e);
+        return null;
+      }
+    }
+
+    function handleCredentialResponse(response) {
+      try {
+        // response.credential es JWT; extraer datos mínimos
+        const payload = parseJwt(response.credential);
+        if (!payload) throw new Error('No se pudo decodificar el token');
+        const user = {
+          name: payload.name || '',
+          email: payload.email || '',
+          picture: payload.picture || ''
+        };
+        sessionStorage.setItem('g_credential', response.credential);
+        sessionStorage.setItem('user', JSON.stringify(user));
+        // redirigir a index.html
+        window.location.href = 'index.html';
+      } catch (err) {
+        const e = document.getElementById('error');
+        e.textContent = 'Error en el inicio de sesión.';
+        e.style.display = 'block';
+      }
+    }
+
+    window.onload = function() {
+      // si ya hay sesión, ir directamente a index
+      if (sessionStorage.getItem('user')) {
+        window.location.href = 'index.html';
+        return;
+      }
+      if (!window.google || !google.accounts || !google.accounts.id) {
+        const e = document.getElementById('error');
+        e.textContent = 'No se pudo cargar el script de Google. Comprueba tu conexión.';
+        e.style.display = 'block';
+        return;
+      }
+
+      google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: handleCredentialResponse
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_button'),
+        { theme: 'outline', size: 'large' }
+      );
+    };
+  </script>
+</body>
+</html>
